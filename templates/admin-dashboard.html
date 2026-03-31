@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="dashboard">
+
+<div class="sidebar">
+<img src="{{ url_for('static', filename='Cargo-and-logistics-logo.png') }}">
+
+<ul class="sidebar-menu">
+<li><a href="/admin">Dashboard</a></li>
+<li><a href="/create">Create Brief</a></li>
+<li><a href="/admin/history">History</a></li>
+</ul>
+</div>
+
+<div class="main-content">
+
+<div class="topbar">
+<h2>Admin Dashboard</h2>
+<button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<div class="stats-container">
+<div class="stat-card">
+<h3>Total Employees</h3>
+<p id="totalEmployees">0</p>
+</div>
+
+<div class="stat-card">
+<h3>Read Briefings</h3>
+<p id="readEmployees">0</p>
+</div>
+
+<div class="stat-card">
+<h3>Pending Employees</h3>
+<p id="pendingEmployees">0</p>
+</div>
+</div>
+
+</div>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+<script>loadStats();</script>
+
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Create Weekly Briefing</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <img src="{{ url_for('static', filename='Cargo-and-logistics-logo.png') }}">
+
+        <ul class="sidebar-menu">
+            <li><a href="/admin">Dashboard</a></li>
+            <li><a href="/create">Create Brief</a></li>
+            <li><a href="/admin/history">History</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+        <div class="topbar">
+            <h2>Create Weekly Briefing</h2>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+
+            <form id="briefForm">
+
+                <div class="form-group">
+                    <label>Week Number</label>
+                    <input type="text" id="weekNumber">
+                </div>
+
+                <div class="form-group">
+                    <label>Airline</label>
+                    <input type="text" id="airline">
+                </div>
+
+                <div class="form-group">
+                    <label>Incident</label>
+                    <textarea id="incident"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Circular Link</label>
+                    <input type="text" id="circularLink">
+                </div>
+
+                <div class="form-group">
+                    <label>Ops Comment</label>
+                    <textarea id="opsComment"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Conclusion</label>
+                    <textarea id="conclusion"></textarea>
+                </div>
+
+                <button type="submit" class="publish-btn">
+                    Publish Briefing
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
