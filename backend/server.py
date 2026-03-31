@@ -7,13 +7,14 @@ app = Flask(__name__,
             static_folder='../static')
 
 CORS(app)
-
+import os
+import mysql.connector
 db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="Darkknight@2008",
-    database="aircargo_briefing",
-    autocommit=True
+    host=os.environ.get("mysql.railway.internal"),
+    user=os.environ.get("root"),
+    password=os.environ.get("KKLMWVMwBXhTuAbIexPSiRAolDGEupRg"),
+    database=os.environ.get("railway"),
+    port=os.environ.get("3306")
 )
 
 # ================= PAGE ROUTES =================
