@@ -1,22 +1,19 @@
 from flask import Flask, render_template, request, jsonify
 import mysql.connector
 from flask_cors import CORS
-
-
-app = Flask(__name__)
-app = Flask(__name__,
-            template_folder='../templates',
-            static_folder='../static')
-
-CORS(app)
 import os
-import mysql.connector
+
+# Flask App
+app = Flask(__name__, template_folder='templates', static_folder='static')
+CORS(app)
+
+# Database Connection (Railway Environment Variables)
 db = mysql.connector.connect(
-    host=os.environ.get("mysql.railway.internal"),
-    user=os.environ.get("root"),
-    password=os.environ.get("KKLMWVMwBXhTuAbIexPSiRAolDGEupRg"),
-    database=os.environ.get("railway"),
-    port=os.environ.get("3306")
+    host=os.environ.get("MYSQLHOST"),
+    user=os.environ.get("MYSQLUSER"),
+    password=os.environ.get("MYSQLPASSWORD"),
+    database=os.environ.get("MYSQLDATABASE"),
+    port=int(os.environ.get("MYSQLPORT"))
 )
 
 # ================= PAGE ROUTES =================
@@ -86,6 +83,7 @@ def create_brief():
         data['conclusion']
     ))
 
+    db.commit()
     return jsonify({"status": "success"})
 
 # ================= LATEST BRIEF =================
@@ -120,6 +118,7 @@ def acknowledge():
         VALUES (%s,%s,'Read')
     """, (employee_id, brief_id))
 
+    db.commit()
     return jsonify({"status": "success"})
 
 # ================= HISTORY DATA =================
@@ -153,7 +152,4 @@ def stats():
 # ================= RUN SERVER =================
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
-if __name__ == "__main__":
     app.run()
