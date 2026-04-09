@@ -2,51 +2,46 @@
 
 document.getElementById("loginForm")?.addEventListener("submit", function(event){
 
-event.preventDefault();
+    event.preventDefault();
 
-let id = document.getElementById("employeeId").value;
-let password = document.getElementById("password").value;
-let role = document.getElementById("role").value;
+    let id = document.getElementById("employeeId").value;
+    let password = document.getElementById("password").value;
 
-if(id === "" || password === "")
-{
-document.getElementById("error").innerText = "Please enter login details";
-return;
-}
+    if(id === "" || password === ""){
+        document.getElementById("error").innerText = "Please enter login details";
+        return;
+    }
 
-fetch("/login", {
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-employee_id:id,
-password:password
-})
-})
-.then(res => res.json())
-.then(data => {
+    fetch("/login", {
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            employee_id:id,
+            password:password
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
 
-if(data.status === "success")
-{
-localStorage.setItem("employee_id", id);
+        if(data.status === "success"){
+            // Store login info
+            localStorage.setItem("employee_id", id);
+            localStorage.setItem("role", data.role);
 
-// IMPORTANT — Flask Routes
-if(role === "admin")
-{
-window.location.href="/admin";
-}
-else
-{
-window.location.href="/employee";
-}
-}
-else
-{
-document.getElementById("error").innerText="Invalid Credentials";
-}
+            // Redirect based on backend role
+            if(data.role === "admin"){
+                window.location.href="/admin";
+            } else {
+                window.location.href="/employee";
+            }
 
-});
+        } else {
+            document.getElementById("error").innerText="Invalid Credentials";
+        }
+
+    });
 
 });
 
@@ -56,38 +51,43 @@ document.getElementById("error").innerText="Invalid Credentials";
 
 document.getElementById("briefForm")?.addEventListener("submit", function(event){
 
-event.preventDefault();
+    event.preventDefault();
 
-let week = document.getElementById("weekNumber").value;
-let airline = document.getElementById("airline").value;
-let incident = document.getElementById("incident").value;
-let circular = document.getElementById("circularLink").value;
-let comment = document.getElementById("opsComment").value;
-let conclusion = document.getElementById("conclusion").value;
+    // Restrict only admin
+    if(localStorage.getItem("role") !== "admin"){
+        alert("Access Denied");
+        return;
+    }
 
-fetch("/createBrief", {
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body: JSON.stringify({
-week_number: week,
-airline: airline,
-incident: incident,
-circular_link: circular,
-ops_comment: comment,
-conclusion: conclusion
-})
-})
-.then(res => res.json())
-.then(data => {
+    let week = document.getElementById("weekNumber").value;
+    let airline = document.getElementById("airline").value;
+    let incident = document.getElementById("incident").value;
+    let circular = document.getElementById("circularLink").value;
+    let comment = document.getElementById("opsComment").value;
+    let conclusion = document.getElementById("conclusion").value;
 
-if(data.status === "success")
-{
-alert("Briefing Saved to Database");
-}
+    fetch("/createBrief", {
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body: JSON.stringify({
+            week_number: week,
+            airline: airline,
+            incident: incident,
+            circular_link: circular,
+            ops_comment: comment,
+            conclusion: conclusion
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
 
-});
+        if(data.status === "success"){
+            alert("Briefing Saved Successfully");
+        }
+
+    });
 
 });
 
@@ -99,34 +99,33 @@ let currentBriefID = null;
 
 function loadLatestBrief(){
 
-fetch("/latestBrief")
-.then(res => res.json())
-.then(data => {
+    fetch("/latestBrief")
+    .then(res => res.json())
+    .then(data => {
 
-if(data)
-{
-currentBriefID = data.brief_id;
+        if(data){
+            currentBriefID = data.brief_id;
 
-document.getElementById("briefWeek").innerText =
-"Weekly Briefing - " + data.week_number;
+            document.getElementById("briefWeek").innerText =
+            "Weekly Briefing - " + data.week_number;
 
-document.getElementById("briefAirline").innerText =
-"Airline: " + data.airline;
+            document.getElementById("briefAirline").innerText =
+            "Airline: " + data.airline;
 
-document.getElementById("briefIncident").innerText =
-"Incident: " + data.incident;
+            document.getElementById("briefIncident").innerText =
+            "Incident: " + data.incident;
 
-document.getElementById("briefComment").innerText =
-data.ops_comment;
+            document.getElementById("briefComment").innerText =
+            data.ops_comment;
 
-document.getElementById("briefConclusion").innerText =
-data.conclusion;
+            document.getElementById("briefConclusion").innerText =
+            data.conclusion;
 
-document.getElementById("briefCircular").href =
-data.circular_link;
-}
+            document.getElementById("briefCircular").href =
+            data.circular_link;
+        }
 
-});
+    });
 
 }
 
@@ -136,31 +135,29 @@ data.circular_link;
 
 function acknowledgeBrief(){
 
-let employeeID = localStorage.getItem("employee_id");
+    let employeeID = localStorage.getItem("employee_id");
 
-fetch("/acknowledge", {
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body: JSON.stringify({
-employee_id: employeeID,
-brief_id: currentBriefID
-})
-})
-.then(res => res.json())
-.then(data => {
+    fetch("/acknowledge", {
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body: JSON.stringify({
+            employee_id: employeeID,
+            brief_id: currentBriefID
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
 
-if(data.status === "success")
-{
-alert("Acknowledgement Recorded");
-}
-else if(data.status === "already")
-{
-alert("You have already acknowledged this briefing");
-}
+        if(data.status === "success"){
+            alert("Acknowledgement Recorded");
+        }
+        else if(data.status === "already"){
+            alert("You have already acknowledged this briefing");
+        }
 
-});
+    });
 
 }
 
@@ -170,15 +167,20 @@ alert("You have already acknowledged this briefing");
 
 function loadStats(){
 
-fetch("/stats")
-.then(res => res.json())
-.then(data => {
+    // Only admin allowed
+    if(localStorage.getItem("role") !== "admin"){
+        return;
+    }
 
-document.getElementById("totalEmployees").innerText = data.total_employees;
-document.getElementById("readEmployees").innerText = data.read;
-document.getElementById("pendingEmployees").innerText = data.pending;
+    fetch("/stats")
+    .then(res => res.json())
+    .then(data => {
 
-});
+        document.getElementById("totalEmployees").innerText = data.total_employees;
+        document.getElementById("readEmployees").innerText = data.read;
+        document.getElementById("pendingEmployees").innerText = data.pending;
+
+    });
 
 }
 
@@ -188,29 +190,34 @@ document.getElementById("pendingEmployees").innerText = data.pending;
 
 function loadAcknowledgements(){
 
-fetch("/acknowledgementList")
-.then(res => res.json())
-.then(data => {
+    // Only admin allowed
+    if(localStorage.getItem("role") !== "admin"){
+        return;
+    }
 
-let table = document.getElementById("ackTable");
+    fetch("/acknowledgementList")
+    .then(res => res.json())
+    .then(data => {
 
-data.forEach(row => {
+        let table = document.getElementById("ackTable");
 
-let tr = document.createElement("tr");
+        data.forEach(row => {
 
-tr.innerHTML = `
-<td>${row.name}</td>
-<td>${row.department}</td>
-<td class="${row.status === 'Read' ? 'read' : 'pending'}">
-${row.status}
-</td>
-`;
+            let tr = document.createElement("tr");
 
-table.appendChild(tr);
+            tr.innerHTML = `
+            <td>${row.name}</td>
+            <td>${row.department}</td>
+            <td class="${row.status === 'Read' ? 'read' : 'pending'}">
+            ${row.status}
+            </td>
+            `;
 
-});
+            table.appendChild(tr);
 
-});
+        });
+
+    });
 
 }
 
@@ -220,31 +227,31 @@ table.appendChild(tr);
 
 function loadHistory(){
 
-fetch("/historyData")
-.then(res => res.json())
-.then(data => {
+    fetch("/historyData")
+    .then(res => res.json())
+    .then(data => {
 
-let table = document.getElementById("historyTable");
+        let table = document.getElementById("historyTable");
 
-data.forEach(row => {
+        data.forEach(row => {
 
-let tr = document.createElement("tr");
+            let tr = document.createElement("tr");
 
-tr.innerHTML = `
-<td>${row.week_number}</td>
-<td>${row.airline}</td>
-<td>${row.incident}</td>
-<td><a href="${row.circular_link}" target="_blank">Link</a></td>
-<td>${row.ops_comment}</td>
-<td>${row.conclusion}</td>
-<td>${row.created_at}</td>
-`;
+            tr.innerHTML = `
+            <td>${row.week_number}</td>
+            <td>${row.airline}</td>
+            <td>${row.incident}</td>
+            <td><a href="${row.circular_link}" target="_blank">Link</a></td>
+            <td>${row.ops_comment}</td>
+            <td>${row.conclusion}</td>
+            <td>${row.created_at}</td>
+            `;
 
-table.appendChild(tr);
+            table.appendChild(tr);
 
-});
+        });
 
-});
+    });
 
 }
 
@@ -253,6 +260,6 @@ table.appendChild(tr);
 // ================= LOGOUT =================
 
 function logout(){
-localStorage.removeItem("employee_id");
-window.location.href = "/";
+    localStorage.clear();
+    window.location.href = "/";
 }

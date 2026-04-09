@@ -2,14 +2,24 @@
 <html>
 <head>
 <title>Create Weekly Briefing</title>
+
+<!-- CSS -->
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
 
 <body>
 
+<!-- SECURITY: ONLY ADMIN CAN ACCESS -->
+<script>
+if(localStorage.getItem("role") !== "admin"){
+    window.location.href = "/";
+}
+</script>
+
 <div class="dashboard">
 
-    <!-- Sidebar -->
+    <!-- SIDEBAR -->
     <div class="sidebar">
         <img src="{{ url_for('static', filename='Cargo-and-logistics-logo.png') }}">
 
@@ -20,47 +30,48 @@
         </ul>
     </div>
 
-    <!-- Main Content -->
+    <!-- MAIN CONTENT -->
     <div class="main-content">
 
+        <!-- TOPBAR -->
         <div class="topbar">
             <h2>Create Weekly Briefing</h2>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
 
-        <!-- Form Card -->
+        <!-- FORM CARD -->
         <div class="form-card">
 
             <form id="briefForm">
 
                 <div class="form-group">
                     <label>Week Number</label>
-                    <input type="text" id="weekNumber">
+                    <input type="text" id="weekNumber" placeholder="e.g. Week 42">
                 </div>
 
                 <div class="form-group">
                     <label>Airline</label>
-                    <input type="text" id="airline">
+                    <input type="text" id="airline" placeholder="e.g. Emirates">
                 </div>
 
                 <div class="form-group">
                     <label>Incident</label>
-                    <textarea id="incident"></textarea>
+                    <textarea id="incident" placeholder="Describe incident"></textarea>
                 </div>
 
                 <div class="form-group">
                     <label>Circular Link</label>
-                    <input type="text" id="circularLink">
+                    <input type="text" id="circularLink" placeholder="Paste link">
                 </div>
 
                 <div class="form-group">
                     <label>Ops Comment</label>
-                    <textarea id="opsComment"></textarea>
+                    <textarea id="opsComment" placeholder="Instructions"></textarea>
                 </div>
 
                 <div class="form-group">
                     <label>Conclusion</label>
-                    <textarea id="conclusion"></textarea>
+                    <textarea id="conclusion" placeholder="Final notes"></textarea>
                 </div>
 
                 <button type="submit" class="publish-btn">
@@ -75,7 +86,17 @@
 
 </div>
 
+<!-- JS -->
 <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+<script>
+// Optional UX improvement: clear form after success
+document.getElementById("briefForm")?.addEventListener("submit", function(){
+    setTimeout(() => {
+        this.reset();
+    }, 500);
+});
+</script>
 
 </body>
 </html>

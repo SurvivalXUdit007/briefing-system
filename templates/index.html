@@ -1,48 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GMR Aero Cargo Briefing System</title>
+<title>Digital Briefing System</title>
 
+<!-- CSS -->
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
 
 <body class="login-page">
 
 <div class="login-wrapper">
+
     <div class="login-container">
 
+        <!-- Logo Section -->
         <div class="logo">
             <img src="{{ url_for('static', filename='Cargo-and-logistics-logo.png') }}">
             <h1>Digital Briefing System</h1>
         </div>
 
+        <!-- Login Box -->
         <div class="login-box">
-            <h2>Employee Login</h2>
+
+            <h2>Login</h2>
 
             <form id="loginForm">
+
+                <!-- Employee ID -->
                 <label>Employee ID</label>
-                <input type="text" id="employeeId">
+                <input type="text" id="employeeId" placeholder="Enter ID">
 
+                <!-- Password -->
                 <label>Password</label>
-                <input type="password" id="password">
+                <input type="password" id="password" placeholder="Enter Password">
 
-                <label>Select Role</label>
-                <select id="role">
-                    <option value="employee">Employee</option>
-                    <option value="admin">Admin</option>
-                </select>
-
+                <!-- Login Button -->
                 <button type="submit">Login</button>
+
             </form>
 
+            <!-- Error Message -->
             <p id="error"></p>
+
         </div>
 
     </div>
+
 </div>
 
+<!-- JS -->
 <script src="{{ url_for('static', filename='script.js') }}"></script>
+
 </body>
 </html>

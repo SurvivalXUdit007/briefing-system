@@ -1,20 +1,23 @@
 from flask import Flask, render_template, request, jsonify
-import mysql.connector
 from flask_cors import CORS
+import mysql.connector
 import os
 
-# Flask App
+# ================= FLASK APP =================
+
 app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app)
 
-# Database Connection (Railway Environment Variables)
-db = mysql.connector.connect(
-    host=os.environ.get("MYSQLHOST"),
-    user=os.environ.get("MYSQLUSER"),
-    password=os.environ.get("MYSQLPASSWORD"),
-    database=os.environ.get("MYSQLDATABASE"),
-    port=int(os.environ.get("MYSQLPORT"))
-)
+# ================= DATABASE CONNECTION =================
+
+def get_db_connection():
+    return mysql.connector.connect(
+        host=os.environ.get("MYSQLHOST"),
+        user=os.environ.get("MYSQLUSER"),
+        password=os.environ.get("MYSQLPASSWORD"),
+        database=os.environ.get("MYSQLDATABASE"),
+        port=int(os.environ.get("MYSQLPORT"))
+    )
 
 # ================= PAGE ROUTES =================
 
@@ -47,17 +50,27 @@ def employee_history():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
-    employee_id = data['employee_id']
-    password = data['password']
+    employee_id = data.get('employee_id')
+    password = data.get('password')
 
-    cursor = db.cursor()
-    cursor.execute(
-        "SELECT * FROM employees WHERE employee_id=%s AND password=%s",
-        (employee_id, password)
-    )
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
 
-    if cursor.fetchone():
-        return jsonify({"status": "success"})
+    cursor.execute("""
+        SELECT role FROM employees 
+        WHERE employee_id=%s AND password=%s
+    """, (employee_id, password))
+
+    result = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if result:
+        return jsonify({
+            "status": "success",
+            "role": result['role']
+        })
     else:
         return jsonify({"status": "failed"})
 
@@ -66,7 +79,9 @@ def login():
 @app.route('/createBrief', methods=['POST'])
 def create_brief():
     data = request.json
-    cursor = db.cursor()
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
     query = """
     INSERT INTO briefings
@@ -83,16 +98,31 @@ def create_brief():
         data['conclusion']
     ))
 
-    db.commit()
+    conn.commit()
+    cursor.close()
+    conn.close()
+
     return jsonify({"status": "success"})
 
 # ================= LATEST BRIEF =================
 
 @app.route('/latestBrief')
 def latest_brief():
-    cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM briefings ORDER BY brief_id DESC LIMIT 1")
-    return jsonify(cursor.fetchone())
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT * FROM briefings 
+        ORDER BY brief_id DESC 
+        LIMIT 1
+    """)
+
+    result = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(result)
 
 # ================= ACKNOWLEDGE =================
 
@@ -102,46 +132,73 @@ def acknowledge():
     employee_id = data['employee_id']
     brief_id = data['brief_id']
 
-    cursor = db.cursor()
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
+    # Check if already acknowledged
     cursor.execute("""
         SELECT * FROM acknowledgements
         WHERE employee_id=%s AND brief_id=%s
     """, (employee_id, brief_id))
 
     if cursor.fetchone():
+        cursor.close()
+        conn.close()
         return jsonify({"status": "already"})
 
+    # Insert acknowledgement
     cursor.execute("""
         INSERT INTO acknowledgements
         (employee_id, brief_id, status)
         VALUES (%s,%s,'Read')
     """, (employee_id, brief_id))
 
-    db.commit()
+    conn.commit()
+    cursor.close()
+    conn.close()
+
     return jsonify({"status": "success"})
 
-# ================= HISTORY DATA =================
+# ================= HISTORY =================
 
 @app.route('/historyData')
 def history_data():
-    cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM briefings ORDER BY brief_id DESC")
-    return jsonify(cursor.fetchall())
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT * FROM briefings 
+        ORDER BY brief_id DESC
+    """)
+
+    result = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(result)
 
 # ================= ADMIN STATS =================
 
 @app.route('/stats')
 def stats():
-    cursor = db.cursor(dictionary=True)
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
 
     cursor.execute("SELECT COUNT(*) AS total FROM employees")
     total = cursor.fetchone()['total']
 
-    cursor.execute("SELECT COUNT(*) AS read_count FROM acknowledgements WHERE status='Read'")
+    cursor.execute("""
+        SELECT COUNT(*) AS read_count 
+        FROM acknowledgements 
+        WHERE status='Read'
+    """)
     read = cursor.fetchone()['read_count']
 
     pending = total - read
+
+    cursor.close()
+    conn.close()
 
     return jsonify({
         "total_employees": total,
@@ -149,7 +206,28 @@ def stats():
         "pending": pending
     })
 
-# ================= RUN SERVER =================
+# ================= ACKNOWLEDGEMENT LIST (ADMIN) =================
+
+@app.route('/acknowledgementList')
+def acknowledgement_list():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT e.name, e.employee_id, a.status
+        FROM employees e
+        LEFT JOIN acknowledgements a
+        ON e.employee_id = a.employee_id
+    """)
+
+    result = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(result)
+
+# ================= RUN =================
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
